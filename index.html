@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG 剪刀石頭布 終極大對決</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for RPG Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Press Start 2P for Retro Feel & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            user-select: none;
+        }
+        .font-pixel {
+            font-family: 'Press Start 2P', cursive;
+        }
+        /* Custom Pixel Border Effect */
+        .pixel-card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 4px solid #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3), inset 0 0 10px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+        }
+        .pixel-card-gold {
+            border-color: #f59e0b;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4), inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .choice-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .choice-btn:hover {
+            transform: translateY(-6px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+        }
+        .choice-btn:active {
+            transform: translateY(2px) scale(0.98);
+        }
+        /* Slot-machine / Shaking effect for computer roll */
+        @keyframes shake {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            20% { transform: translateY(-8px) rotate(-5deg); }
+            40% { transform: translateY(8px) rotate(5deg); }
+            60% { transform: translateY(-4px) rotate(-3deg); }
+            80% { transform: translateY(4px) rotate(3deg); }
+        }
+        .rolling {
+            animation: shake 0.15s infinite;
+        }
+        /* Floating particles / glow animation */
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6)); }
+            50% { filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.9)); }
+        }
+        .glow-gold {
+            animation: pulseGlow 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center p-4 md:p-8 bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950">
+
+    <!-- Header Title -->
+    <header class="text-center my-4">
+        <h1 class="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 tracking-wider drop-shadow-md">
+            ⚔️ 剪刀石頭布 終極大對決 ⚔️
+        </h1>
+        <p class="text-slate-400 text-sm md:text-base mt-2">勝者為王！先取得 3 勝的勇者將獲得最終榮耀！</p>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="w-full max-w-3xl my-auto">
+
+        <!-- ================= PAGE 1: ADVENTURER REGISTRATION ================= -->
+        <section id="login-screen" class="pixel-card-gold p-6 md:p-8">
+            <div class="text-center mb-6">
+                <span class="text-4xl">🛡️</span>
+                <h2 class="text-2xl font-bold text-amber-400 mt-2">1. 冒險者登入</h2>
+                <p class="text-slate-300 text-sm">踏上征途前，請登記你的名號與備好的神器！</p>
+            </div>
+
+            <form id="login-form" onsubmit="startGame(event)" class="space-y-6">
+                <div>
+                    <label for="input-name" class="block text-sm font-semibold text-amber-300 mb-2">
+                        <i class="fa-solid fa-user-ninja mr-2"></i>請輸入你的冒險者名字：
+                    </label>
+                    <input type="text" id="input-name" required placeholder="例如：傳說亞瑟" 
+                        class="w-full px-4 py-3 bg-slate-900 border-2 border-slate-700 rounded-lg focus:outline-none focus:border-amber-400 text-white placeholder-slate-500 transition">
+                </div>
+
+                <div>
+                    <label for="input-equipment" class="block text-sm font-semibold text-amber-300 mb-2">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>請選擇你的使用裝備：
+                    </label>
+                    <input type="text" id="input-equipment" required placeholder="例如：黃金鍵盤、魔法魔杖" 
+                        class="w-full px-4 py-3 bg-slate-900 border-2 border-slate-700 rounded-lg focus:outline-none focus:border-amber-400 text-white placeholder-slate-500 transition">
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="flex flex-wrap gap-2 pt-1">
+                    <span class="text-xs text-slate-400 self-center">快速選擇神器：</span>
+                    <button type="button" onclick="setPreset('黃金鍵盤')" class="text-xs bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded border border-slate-600 text-amber-200">⌨️ 黃金鍵盤</button>
+                    <button type="button" onclick="setPreset('魔法魔杖')" class="text-xs bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded border border-slate-600 text-amber-200">🪄 魔法魔杖</button>
+                    <button type="button" onclick="setPreset('勇者龍劍')" class="text-xs bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded border border-slate-600 text-amber-200">🗡️ 勇者龍劍</button>
+                </div>
+
+                <button type="submit" 
+                    class="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-xl rounded-lg shadow-lg transform active:scale-95 transition">
+                    🚀 開始冒險 ⚔️
+                </button>
+            </form>
+        </section>
+
+
+        <!-- ================= PAGE 2: BATTLE ARENA ================= -->
+        <section id="battle-screen" class="hidden space-y-6">
+
+            <!-- System Broadcast Banner -->
+            <div class="bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900 border-2 border-amber-400/60 rounded-xl p-4 text-center shadow-lg">
+                <div class="text-xs font-bold text-amber-400 tracking-widest uppercase mb-1">=== 系統廣播 ===</div>
+                <div id="broadcast-msg" class="text-sm md:text-base text-slate-100 font-medium"></div>
+            </div>
+
+            <!-- Scoreboard & Round Indicator -->
+            <div class="pixel-card p-4 md:p-6 relative overflow-hidden">
+                <div class="flex justify-between items-center mb-4 border-b border-slate-700/80 pb-3">
+                    <span class="text-xs md:text-sm font-semibold text-slate-400">勝利條件：先得 3 勝</span>
+                    <span id="round-display" class="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/50 rounded-full font-bold text-sm">
+                        --- 第 1 回合 ---
+                    </span>
+                </div>
+
+                <!-- Versus Score Cards -->
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <!-- Player Stats -->
+                    <div class="bg-slate-900/80 p-3 rounded-lg border border-blue-500/30">
+                        <div id="player-avatar-name" class="text-amber-300 font-bold text-base md:text-lg truncate">玩家</div>
+                        <div id="player-gear-tag" class="text-xs text-slate-400 truncate mt-0.5">裝備：-</div>
+                        <div class="mt-2 text-2xl md:text-3xl font-black text-blue-400">
+                            <span id="player-score">0</span> <span class="text-xs text-slate-400">勝</span>
+                        </div>
+                        <div class="flex justify-center gap-1 mt-2" id="player-hearts">
+                            <i class="fa-regular fa-star text-slate-600"></i>
+                            <i class="fa-regular fa-star text-slate-600"></i>
+                            <i class="fa-regular fa-star text-slate-600"></i>
+                        </div>
+                    </div>
+
+                    <!-- Computer Stats -->
+                    <div class="bg-slate-900/80 p-3 rounded-lg border border-red-500/30">
+                        <div class="text-red-400 font-bold text-base md:text-lg">🤖 電腦魔王</div>
+                        <div class="text-xs text-slate-400 mt-0.5">裝備：AI神經網路</div>
+                        <div class="mt-2 text-2xl md:text-3xl font-black text-red-400">
+                            <span id="computer-score">0</span> <span class="text-xs text-slate-400">勝</span>
+                        </div>
+                        <div class="flex justify-center gap-1 mt-2" id="computer-hearts">
+                            <i class="fa-regular fa-star text-slate-600"></i>
+                            <i class="fa-regular fa-star text-slate-600"></i>
+                            <i class="fa-regular fa-star text-slate-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Battle Arena / Moves Showcase -->
+            <div class="pixel-card p-6 text-center relative">
+                <h3 class="text-sm font-semibold text-slate-400 mb-4">對決擂台</h3>
+
+                <div class="flex justify-around items-center my-4">
+                    <!-- Player Move Choice -->
+                    <div class="flex flex-col items-center">
+                        <div id="player-move-box" class="w-24 h-24 md:w-28 md:h-28 bg-slate-900 border-2 border-blue-500 rounded-2xl flex items-center justify-center text-4xl md:text-5xl shadow-inner">
+                            ❓
+                        </div>
+                        <span class="text-xs text-slate-300 mt-2 font-bold">你的出拳</span>
+                    </div>
+
+                    <div class="text-2xl font-black text-amber-400 italic">VS</div>
+
+                    <!-- Computer Move Choice -->
+                    <div class="flex flex-col items-center">
+                        <div id="computer-move-box" class="w-24 h-24 md:w-28 md:h-28 bg-slate-900 border-2 border-red-500 rounded-2xl flex items-center justify-center text-4xl md:text-5xl shadow-inner">
+                            ❓
+                        </div>
+                        <span class="text-xs text-slate-300 mt-2 font-bold">電腦出拳</span>
+                    </div>
+                </div>
+
+                <!-- Round Status Feedback Box -->
+                <div id="round-result-msg" class="min-h-[48px] flex items-center justify-center text-base md:text-lg font-bold text-slate-300 mt-2 bg-slate-900/60 rounded-lg p-2 border border-slate-800">
+                    等待你的選擇...
+                </div>
+            </div>
+
+            <!-- Player Choice Buttons -->
+            <div class="pixel-card p-4">
+                <p class="text-center text-sm font-semibold text-amber-300 mb-3">請選擇出拳招式：</p>
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="playRound('剪刀')" class="choice-btn bg-slate-800 hover:bg-slate-700 border-2 border-amber-400/80 p-3 md:p-4 rounded-xl flex flex-col items-center gap-1 group">
+                        <span class="text-3xl md:text-4xl group-hover:scale-110 transition">✌️</span>
+                        <span class="text-sm font-bold text-slate-200">剪刀</span>
+                    </button>
+                    <button onclick="playRound('石頭')" class="choice-btn bg-slate-800 hover:bg-slate-700 border-2 border-amber-400/80 p-3 md:p-4 rounded-xl flex flex-col items-center gap-1 group">
+                        <span class="text-3xl md:text-4xl group-hover:scale-110 transition">✊</span>
+                        <span class="text-sm font-bold text-slate-200">石頭</span>
+                    </button>
+                    <button onclick="playRound('布')" class="choice-btn bg-slate-800 hover:bg-slate-700 border-2 border-amber-400/80 p-3 md:p-4 rounded-xl flex flex-col items-center gap-1 group">
+                        <span class="text-3xl md:text-4xl group-hover:scale-110 transition">✋</span>
+                        <span class="text-sm font-bold text-slate-200">布</span>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ================= PAGE 3: FINAL RESULT SCREEN ================= -->
+        <section id="result-screen" class="hidden pixel-card-gold p-6 md:p-8 text-center space-y-6">
+            <div id="result-badge" class="text-6xl my-2">🏆</div>
+            
+            <h2 id="result-title" class="text-2xl md:text-4xl font-extrabold"></h2>
+
+            <div id="result-details" class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 space-y-2 text-sm md:text-base text-slate-300">
+                <!-- Injected via JS -->
+            </div>
+
+            <button onclick="resetGame()" 
+                class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xl rounded-lg shadow-lg transform active:scale-95 transition">
+                🔄 重新挑戰
+            </button>
+        </section>
+
+    </main>
+
+    <footer class="mt-8 text-center text-xs text-slate-500">
+        RPG 剪刀石頭布 終極大對決 &copy; 網頁版轉換專案
+    </footer>
+
+    <!-- JavaScript Game Logic -->
+    <script>
+        // State Variables (對應 Python 變數)
+        let name = "";
+        let equipment = "";
+        let playerWins = 0;
+        let computerWins = 0;
+        let roundNum = 1;
+        let isProcessing = false;
+
+        const options = ["剪刀", "石頭", "布"];
+        const moveEmojis = {
+            "剪刀": "✌️",
+            "石頭": "✊",
+            "布": "✋"
+        };
+
+        // DOM Element References
+        const loginScreen = document.getElementById('login-screen');
+        const battleScreen = document.getElementById('battle-screen');
+        const resultScreen = document.getElementById('result-screen');
+
+        // Preset Helper
+        function setPreset(eqName) {
+            document.getElementById('input-equipment').value = eqName;
+        }
+
+        // 1. Start Game / Login
+        function startGame(e) {
+            e.preventDefault();
+            name = document.getElementById('input-name').value.trim() || "無名勇者";
+            equipment = document.getElementById('input-equipment').value.trim() || "新手木劍";
+
+            // Update UI elements
+            document.getElementById('broadcast-msg').innerHTML = 
+                `歡迎勇敢的冒險者【<span class="text-amber-300 font-bold">${name}</span>】！<br>` +
+                `你已經裝備了【<span class="text-emerald-400 font-bold">${equipment}</span>】，準備好迎接第一關的 【猜拳】 挑戰！`;
+
+            document.getElementById('player-avatar-name').innerText = name;
+            document.getElementById('player-gear-tag').innerText = `裝備：${equipment}`;
+
+            // Reset States
+            playerWins = 0;
+            computerWins = 0;
+            roundNum = 1;
+            updateScoreboard();
+
+            // Screen Transition
+            loginScreen.classList.add('hidden');
+            battleScreen.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
+        }
+
+        // Update Hearts / Score Icons
+        function updateScoreboard() {
+            document.getElementById('round-display').innerText = `--- 第 ${roundNum} 回合 ---`;
+            document.getElementById('player-score').innerText = playerWins;
+            document.getElementById('computer-score').innerText = computerWins;
+
+            // Render Stars/Hearts
+            renderStars('player-hearts', playerWins, 'text-amber-400');
+            renderStars('computer-hearts', computerWins, 'text-red-500');
+        }
+
+        function renderStars(containerId, wins, activeColorClass) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const icon = document.createElement('i');
+                if (i < wins) {
+                    icon.className = `fa-solid fa-star ${activeColorClass} text-lg md:text-xl`;
+                } else {
+                    icon.className = `fa-regular fa-star text-slate-600 text-lg md:text-xl`;
+                }
+                container.appendChild(icon);
+            }
+        }
+
+        // Round Logic (剪刀石頭布的主要判斷邏輯)
+        function playRound(playerChoice) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const playerBox = document.getElementById('player-move-box');
+            const computerBox = document.getElementById('computer-move-box');
+            const resultMsg = document.getElementById('round-result-msg');
+
+            // Show Player Choice
+            playerBox.innerHTML = moveEmojis[playerChoice];
+
+            // Computer Rolling Animation
+            computerBox.classList.add('rolling');
+            computerBox.innerHTML = "❓";
+            resultMsg.className = "min-h-[48px] flex items-center justify-center text-base font-bold text-amber-300 bg-slate-900/60 rounded-lg p-2 border border-slate-800 animate-pulse";
+            resultMsg.innerText = "🤖 電腦思考中...";
+
+            setTimeout(() => {
+                computerBox.classList.remove('rolling');
+                
+                // 4. 電腦隨機出拳 (random.choice)
+                const computerChoice = options[Math.floor(Math.random() * options.length)];
+                computerBox.innerHTML = moveEmojis[computerChoice];
+
+                // 5. 勝負判斷
+                if (playerChoice === computerChoice) {
+                    // 平手
+                    resultMsg.innerText = "🤝 平手！沒有人得分。";
+                    resultMsg.className = "min-h-[48px] flex items-center justify-center text-base font-bold text-slate-300 bg-slate-800/80 rounded-lg p-2 border border-slate-600";
+                } else if (
+                    (playerChoice === "剪刀" && computerChoice === "布") ||
+                    (playerChoice === "石頭" && computerChoice === "剪刀") ||
+                    (playerChoice === "布" && computerChoice === "石頭")
+                ) {
+                    // 玩家勝
+                    playerWins++;
+                    resultMsg.innerText = `🎉 這回合你贏了！【${equipment}】發揮了威力！`;
+                    resultMsg.className = "min-h-[48px] flex items-center justify-center text-base font-bold text-emerald-400 bg-emerald-950/60 rounded-lg p-2 border border-emerald-500/50";
+                } else {
+                    // 電腦勝
+                    computerWins++;
+                    resultMsg.innerText = "💥 這回合電腦贏了！";
+                    resultMsg.className = "min-h-[48px] flex items-center justify-center text-base font-bold text-red-400 bg-red-950/60 rounded-lg p-2 border border-red-500/50";
+                }
+
+                roundNum++;
+                updateScoreboard();
+
+                // 檢查是否遊戲結束 (while 條件觸發終止: 當有任何一方到達 3 勝)
+                setTimeout(() => {
+                    if (playerWins >= 3 || computerWins >= 3) {
+                        showFinalResult();
+                    }
+                    isProcessing = false;
+                }, 800);
+
+            }, 600);
+        }
+
+        // 6. 最終結算
+        function showFinalResult() {
+            battleScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            const titleEl = document.getElementById('result-title');
+            const detailsEl = document.getElementById('result-details');
+            const badgeEl = document.getElementById('result-badge');
+
+            if (playerWins === 3) {
+                badgeEl.innerText = "👑";
+                titleEl.className = "text-2xl md:text-4xl font-extrabold text-amber-400 glow-gold";
+                titleEl.innerText = "=== 🌟 最終大勝利 🌟 ===";
+                
+                detailsEl.innerHTML = `
+                    <p class="text-lg font-bold text-emerald-300">🏆 恭喜你以 <span class="text-amber-400 text-2xl">${playerWins}</span> : <span class="text-red-400 text-2xl">${computerWins}</span> 擊敗了電腦，成為剪刀石頭布大師！</p>
+                    <div class="pt-2 text-xs text-slate-400 border-t border-slate-800">
+                        傳奇冒險者：<span class="text-amber-300 font-bold">${name}</span><br>
+                        傳說級神器：<span class="text-amber-300 font-bold">${equipment}</span>
+                    </div>
+                `;
+            } else {
+                badgeEl.innerText = "💀";
+                titleEl.className = "text-2xl md:text-4xl font-extrabold text-red-500";
+                titleEl.innerText = "=== 💥 戰敗結算 💥 ===";
+                
+                detailsEl.innerHTML = `
+                    <p class="text-lg font-bold text-red-300">💻 很可惜，電腦以 <span class="text-red-400 text-2xl">${computerWins}</span> : <span class="text-amber-400 text-2xl">${playerWins}</span> 獲得了最終勝利，下次再來挑戰吧！</p>
+                    <div class="pt-2 text-xs text-slate-400 border-t border-slate-800">
+                        勇者 <span class="text-slate-200">${name}</span>，別灰心！再接再厲！
+                    </div>
+                `;
+            }
+        }
+
+        // Reset Game back to Registration Screen
+        function resetGame() {
+            resultScreen.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            
+            // Reset Move Boxes
+            document.getElementById('player-move-box').innerHTML = "❓";
+            document.getElementById('computer-move-box').innerHTML = "❓";
+            document.getElementById('round-result-msg').innerText = "等待你的選擇...";
+            document.getElementById('round-result-msg').className = "min-h-[48px] flex items-center justify-center text-base font-bold text-slate-300 bg-slate-900/60 rounded-lg p-2 border border-slate-800";
+        }
+    </script>
+</body>
+</html>
